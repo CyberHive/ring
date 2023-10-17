@@ -39,7 +39,7 @@ use super::{
 };
 
 pub static COMMON_OPS: CommonOps = CommonOps {
-    num_limbs: %(bits)s / LIMB_BITS,
+    num_limbs: (%(bits)s + 7) / LIMB_BITS,
 
     q: Modulus {
         p: limbs_from_hex("%(q)x"),
@@ -158,8 +158,11 @@ import math
 import random
 import sys
 
+def whole_bit_length(p):
+    return (p.bit_length() + limb_bits - 1) // limb_bits * limb_bits
+
 def to_montgomery(x, p):
-    return (x * 2**p.bit_length()) % p
+    return (x * 2**whole_bit_length(p)) % p
 
 # http://rosettacode.org/wiki/Modular_inverse#Python
 def modinv(a, m):
@@ -204,7 +207,7 @@ def format_prime_curve(g):
         "bits": g["q"].bit_length(),
         "name": name,
         "q" : q,
-        "q_rr": to_montgomery(2**q.bit_length(), q),
+        "q_rr": to_montgomery(2**whole_bit_length(q), q),
         "n" : n,
         "one" : to_montgomery(1, q),
         "a" : to_montgomery(g["a"], q),
@@ -247,6 +250,18 @@ p384 = {
     "cofactor": 1,
 }
 
+p521 = {
+    "q_formula": 2**521 - 1,
+    "q" : 0x1ff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff,
+    "n_formula": 2**521 - 2**260 + 0xa_51868783_bf2f966b_7fcc0148_f709a5d0_3bb5c9b8_899c47ae_bb6fb71e_91386409,
+    "n" : 0x1ff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_fffffffa_51868783_bf2f966b_7fcc0148_f709a5d0_3bb5c9b8_899c47ae_bb6fb71e_91386409,
+    "a": -3,
+    "b": 0x051_953eb961_8e1c9a1f_929a21a0_b68540ee_a2da725b_99b315f3_b8b48991_8ef109e1_56193951_ec7e937b_1652c0bd_3bb1bf07_3573df88_3d2c34f1_ef451fd4_6b503f00,
+    "Gx": 0xc6_858e06b7_0404e9cd_9e3ecb66_2395b442_9c648139_053fb521_f828af60_6b4d3dba_a14b5e77_efe75928_fe1dc127_a2ffa8de_3348b3c1_856a429b_f97e7e31_c2e5bd66,
+    "Gy": 0x118_39296a78_9a3bc004_5c8a5fb4_2c7d1bd9_98f54449_579b4468_17afbd17_273e662c_97ee7299_5ef42640_c550b901_3fad0761_353c7086_a272c240_88be9476_9fd16650,
+    "cofactor": 1,
+}
+
 import os
 import subprocess
 
@@ -259,5 +274,5 @@ def generate_prime_curve_file(g, out_dir):
     subprocess.run(["rustfmt", out_path])
 
 
-for curve in [p256, p384]:
+for curve in [p256, p384, p521]:
     generate_prime_curve_file(curve, "target/curves")
