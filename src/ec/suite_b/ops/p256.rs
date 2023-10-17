@@ -25,6 +25,7 @@ pub static COMMON_OPS: CommonOps = CommonOps {
         rr: limbs_from_hex("4fffffffdfffffffffffffffefffffffbffffffff0000000000000003"),
     },
     n: Elem::from_hex("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551"),
+
     a: Elem::from_hex("fffffffc00000004000000000000000000000003fffffffffffffffffffffffc"),
     b: Elem::from_hex("dc30061d04874834e5a220abf7212ed6acf005cd78843090d89cdf6229c4bddf"),
 
@@ -115,6 +116,7 @@ pub static PUBLIC_SCALAR_OPS: PublicScalarOps = PublicScalarOps {
     scalar_ops: &SCALAR_OPS,
     public_key_ops: &PUBLIC_KEY_OPS,
     private_key_ops: &PRIVATE_KEY_OPS,
+
     q_minus_n: Elem::from_hex("4319055358e8617b0c46353d039cdaae"),
 };
 
@@ -163,7 +165,7 @@ fn p256_scalar_inv_to_mont(a: &Scalar<Unencoded>) -> Scalar<R> {
         binary_op_assign(p256_scalar_mul_mont, acc, b);
     }
 
-    fn to_mont(a: &Scalar) -> Scalar<R> {
+    fn to_mont(a: &Scalar<Unencoded>) -> Scalar<R> {
         static N_RR: Scalar<Unencoded> = Scalar {
             limbs: PRIVATE_SCALAR_OPS.oneRR_mod_n.limbs,
             m: PhantomData,
